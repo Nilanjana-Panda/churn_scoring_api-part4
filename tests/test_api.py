@@ -1,0 +1,128 @@
+from fastapi.testclient import TestClient
+
+from app.main import app
+
+
+client = TestClient(app)
+
+
+def test_health_endpoint():
+
+    response = client.get(
+        "/health"
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "status": "ok"
+    }
+
+
+def test_predict_endpoint():
+
+    payload = {
+
+        "recency_days": 15,
+        "frequency_180d": 8,
+        "monetary_180d": 450.5,
+        "return_rate_180d": 0.12,
+        "avg_discount_pct_180d": 18.5,
+        "avg_rating_180d": 4.3,
+        "category_diversity_180d": 4,
+
+        "ticket_count_90d": 2,
+        "negative_ticket_rate_90d": 0.25,
+        "avg_resolution_hours_90d": 24,
+
+        "days_since_signup": 800,
+
+        "sessions_30d": 12,
+        "product_views_30d": 45,
+        "cart_adds_30d": 8,
+        "wishlist_adds_30d": 3,
+        "abandoned_carts_30d": 2,
+
+        "email_opens_30d": 6,
+        "campaign_clicks_30d": 2,
+
+        "last_visit_days_ago": 4,
+
+        "city_tier": "Tier_1",
+        "age_group": "25-34",
+        "acquisition_channel": "Organic",
+        "loyalty_tier": "Gold",
+        "preferred_category": "Fragrance",
+        "marketing_consent": "Yes"
+
+    }
+
+    response = client.post(
+        "/predict",
+        json=payload
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert "churn_probability" in result
+    assert "predicted_class" in result
+    assert "risk_level" in result
+
+
+def test_batch_predict_endpoint():
+
+    payload = {
+
+        "customers": [
+
+            {
+
+                "recency_days": 15,
+                "frequency_180d": 8,
+                "monetary_180d": 450.5,
+                "return_rate_180d": 0.12,
+                "avg_discount_pct_180d": 18.5,
+                "avg_rating_180d": 4.3,
+                "category_diversity_180d": 4,
+
+                "ticket_count_90d": 2,
+                "negative_ticket_rate_90d": 0.25,
+                "avg_resolution_hours_90d": 24,
+
+                "days_since_signup": 800,
+
+                "sessions_30d": 12,
+                "product_views_30d": 45,
+                "cart_adds_30d": 8,
+                "wishlist_adds_30d": 3,
+                "abandoned_carts_30d": 2,
+
+                "email_opens_30d": 6,
+                "campaign_clicks_30d": 2,
+
+                "last_visit_days_ago": 4,
+
+                "city_tier": "Tier_1",
+                "age_group": "25-34",
+                "acquisition_channel": "Organic",
+                "loyalty_tier": "Gold",
+                "preferred_category": "Fragrance",
+                "marketing_consent": "Yes"
+
+            }
+
+        ]
+    }
+
+    response = client.post(
+        "/batch_predict",
+        json=payload
+    )
+
+    assert response.status_code == 200
+
+    result = response.json()
+
+    assert "predictions" in result
